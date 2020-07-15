@@ -2,20 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, TextInput, Button, Alert, Dimensions, KeyboardAvoidingView, ScrollView } from 'react-native'
 import { useSelector, useDispatch } from 'react-redux';
 import { getBoard, solve, validate } from '../store/actions/boardAction.js';
-import { setCountDown } from '../store/actions/countDownAction.js'
 import CountDown from 'react-native-countdown-component';
 
 export default function Game({navigation}) {
   const dispatch = useDispatch();
   const {board, status, solutionBoard} = useSelector(state => state.boardReducer);
   const {user, level} = useSelector(state => state.userReducer);
-  const {counter} = useSelector(state => state.userReducer);
   const [playingBoard, setPlayingBoard] = useState([]);
+  let countDownTime = getCountDownTime();
 
+  function getCountDownTime() {
+    switch (level) {
+      case 'easy':
+        return 300;
+      case 'medium':
+        return 600;
+      case 'hard':
+        return 900;
+      default:
+        return 600;
+    }
+  }
 
   useEffect(() => {
     dispatch(getBoard(level));
-    getTime();
   }, [dispatch, user, level])
 
   useEffect(() => {
@@ -28,23 +38,6 @@ export default function Game({navigation}) {
     }
   }, [status])
 
-  function getTime() {
-    switch (level) {
-      case 'easy':
-        dispatch(setCountDown(300));
-        break;
-      case 'medium':
-        dispatch(setCountDown(600));
-        break;
-      case 'hard':
-        dispatch(setCountDown(900));
-        break;
-      default:
-        dispatch(setCountDown(600));
-        break;
-    }
-  }
-
   function getSolve() {
     Alert.alert('Sudoku Solved!')
     dispatch(solve(board))    
@@ -52,7 +45,6 @@ export default function Game({navigation}) {
 
   function resetBoard() {
     Alert.alert('Board Reset!')
-    getTime();
     dispatch(getBoard(level));   
   }
 
@@ -72,7 +64,7 @@ export default function Game({navigation}) {
       <ScrollView>
         <View style={styles.container}>
         <CountDown
-          until={counter}
+          until={countDownTime}
           onFinish={() => {Alert.alert('Finish, You Failed!');navigation.navigate('Home');}}
           size={20}
           timeToShow={['M', 'S']}
